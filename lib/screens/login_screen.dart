@@ -10,6 +10,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  String email;
+  String password;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Hero(
-              tag:kHeroTagLogo,
+              tag: kHeroTagLogo,
               child: Container(
                 height: 200.0,
                 child: Image.asset('images/logo.png'),
@@ -31,19 +34,25 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 48.0,
             ),
             TextField(
+              keyboardType: TextInputType.emailAddress,
+              textAlign: TextAlign.center,
               onChanged: (value) {
-                //Do something with the user input.
+                email = value;
               },
-              decoration: kTextFieldDecoration.copyWith(hintText: 'Enter Your Email'),
+              decoration:
+                  kTextFieldDecoration.copyWith(hintText: 'Enter Your Email'),
             ),
             SizedBox(
               height: 8.0,
             ),
             TextField(
+              obscureText: true,
+              textAlign: TextAlign.center,
               onChanged: (value) {
-                //Do something with the user input.
+                password = value;
               },
-              decoration: kTextFieldDecoration.copyWith(hintText: 'Enter your password'),
+              decoration: kTextFieldDecoration.copyWith(
+                  hintText: 'Enter your password'),
             ),
             SizedBox(
               height: 24.0,
@@ -51,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
             RoundedButton(
               title: 'Log In',
               color: Colors.blueAccent,
-              onPressed: (){},
+              onPressed: () {},
             ),
           ],
         ),
