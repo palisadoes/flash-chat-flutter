@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../constants.dart';
 import '../components/rounded_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'chat_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'LoginScreen';
@@ -10,6 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _auth = FirebaseAuth.instance;
   String email;
   String password;
 
@@ -26,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Hero(
               tag: kHeroTagLogo,
               child: Container(
-                height: 200.0,
+                height: 100.0,
                 child: Image.asset('images/logo.png'),
               ),
             ),
@@ -37,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
               keyboardType: TextInputType.emailAddress,
               textAlign: TextAlign.center,
               onChanged: (value) {
-                email = value;
+                email = value.trim();
               },
               decoration:
                   kTextFieldDecoration.copyWith(hintText: 'Enter Your Email'),
@@ -60,7 +63,17 @@ class _LoginScreenState extends State<LoginScreen> {
             RoundedButton(
               title: 'Log In',
               color: Colors.blueAccent,
-              onPressed: () {},
+              onPressed: () async {
+                try {
+                  final newUser = await _auth.signInWithEmailAndPassword(
+                      email: email, password: password);
+                  if (newUser != null) {
+                    Navigator.pushNamed(context, ChatScreen.id);
+                  }
+                } catch (e) {
+                  print(e);
+                }
+              },
             ),
           ],
         ),
