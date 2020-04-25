@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 
 final _firestore = Firestore.instance;
+FirebaseUser loggedInUser;
 
 class ChatScreen extends StatefulWidget {
   static const String id = 'ChatScreen';
@@ -16,7 +17,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _auth = FirebaseAuth.instance;
   final messageTextController = TextEditingController();
-  FirebaseUser loggedInUser;
   String messageText;
 
   @override
@@ -36,21 +36,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-//  void getMessages() async {
-//    final messages = await _firestore.collection('messages').getDocuments();
-//    for (var message in messages.documents) {
-//      print(message.data);
-//    }
-//  }
-
-  void getMessagesStream() async {
-    await for (var snapshot in _firestore.collection('messages').snapshots()) {
-      for (var message in snapshot.documents) {
-        print(message.data);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,9 +45,8 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
               icon: Icon(Icons.close),
               onPressed: () {
-                getMessagesStream();
-                //_auth.signOut();
-                //Navigator.pop(context);
+                _auth.signOut();
+                Navigator.pop(context);
               }),
         ],
         title: Text('⚡️Chat'),
@@ -126,15 +110,18 @@ class MessagesStream extends StatelessWidget {
           );
         }
 
-        // Process message items from FireBase
-        final messages = snapshot.data.documents;
+        // Process message items from FireBase.
+        // Get them in reversed order, most recent first.
+        final messages = snapshot.data.documents.reversed;
         List<MessageBubble> messageBubbles = [];
         for (var message in messages) {
           final messageText = message.data['text'];
           final messageSender = message.data['sender'];
+          final currentUser = loggedInUser.email;
           final messageBubble = MessageBubble(
             sender: messageSender,
             text: messageText,
+            isMe: currentUser == messageSender,
           );
           messageBubbles.add(messageBubble);
         }
@@ -143,6 +130,9 @@ class MessagesStream extends StatelessWidget {
         // on the screen from being push off the screen at the bottom
         return Expanded(
           child: ListView(
+            // Display ListView entries starting from the bottom
+            // of the screen, upwards using reverse = true.
+            reverse: true,
             children: messageBubbles,
             padding: EdgeInsets.symmetric(
               // Overall padding for the list.
@@ -159,16 +149,19 @@ class MessagesStream extends StatelessWidget {
 }
 
 class MessageBubble extends StatelessWidget {
-  MessageBubble({this.sender, this.text});
+  MessageBubble({this.sender, this.text, this.isMe});
   final String sender;
   final String text;
+  final bool isMe;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       // Padding around each material widget
       padding: EdgeInsets.all(10),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             sender,
@@ -180,8 +173,19 @@ class MessageBubble extends StatelessWidget {
           Material(
             // Using material widget to add characteristics around the Text widget.
             elevation: 5,
-            borderRadius: BorderRadius.circular(30),
-            color: Colors.lightBlueAccent,
+            // Create asymmetric bubble shape with borderRadius
+            borderRadius: isMe
+                ? BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  )
+                : BorderRadius.only(
+                    topRight: Radius.circular(30),
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  ),
+            color: isMe ? Colors.lightBlueAccent : Colors.white,
             child: Padding(
               padding: EdgeInsets.symmetric(
                 vertical: 10,
@@ -191,7 +195,7 @@ class MessageBubble extends StatelessWidget {
                 '$text',
                 style: TextStyle(
                   fontSize: 15,
-                  color: Colors.white,
+                  color: isMe ? Colors.white : Colors.black54,
                 ),
               ),
             ),
