@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat_flutter/components/rounded_button.dart';
 import 'package:flash_chat_flutter/constants.dart';
+import 'package:flash_chat_flutter/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -9,6 +11,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _auth = FirebaseAuth.instance;
   String email;
   String password;
 
@@ -57,12 +60,19 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 24.0,
             ),
             RoundedButton(
-              title: 'Log In',
-              color: Colors.lightBlueAccent,
-              onPressed: () {
-                //Implement login functionality.
-              },
-            ),
+                title: 'Log In',
+                color: Colors.lightBlueAccent,
+                onPressed: () async {
+                  try {
+                    final existingUser = await _auth.signInWithEmailAndPassword(
+                        email: email, password: password);
+                    if (existingUser != null) {
+                      Navigator.pushNamed(context, ChatScreen.id);
+                    }
+                  } catch (e) {
+                    print(e);
+                  }
+                }),
           ],
         ),
       ),
