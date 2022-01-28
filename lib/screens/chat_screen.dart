@@ -73,34 +73,36 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            StreamBuilder<QuerySnapshot>(
+              stream: _fireStore.collection('messages').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.lightBlueAccent,
+                    ),
+                  );
+                } else {
+                  final messages = snapshot.data.docs;
+                  List<Text> messageWidgets = [];
+                  for (var message in messages) {
+                    final messageText = message['text'];
+                    final messageSender = message['sender'];
+                    final messageWidget =
+                        Text('$messageText from $messageSender');
+                    messageWidgets.add(messageWidget);
+                  }
+                  return Column(
+                    children: messageWidgets,
+                  );
+                }
+              },
+            ),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  StreamBuilder<QuerySnapshot>(
-                    stream: _fireStore.collection('messages').snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final messages = snapshot.data.docs;
-                        List<Text> messageWidgets = [];
-                        for (var message in messages) {
-                          final messageText = message.data['text'];
-                          final messageSender = message.data['sender'];
-                          final messageWidget =
-                              Text('$messageText from $messageSender');
-                          messageWidgets.add(messageWidget);
-                        }
-                        return Column(
-                          children: messageWidgets,
-                        );
-                      } else {
-                        return Column(
-                          children: [],
-                        );
-                      }
-                    },
-                  ),
                   Expanded(
                     child: TextField(
                       onChanged: (value) {
