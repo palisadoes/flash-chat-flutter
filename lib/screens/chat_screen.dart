@@ -36,8 +36,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // }
 
   void messagesStream() async {
-    await for (var snapshot in _fireStore.collection('messages').snapshots()) {
-      for (var message in snapshot.docs) {
+    await for (var next_snapshot
+        in _fireStore.collection('messages').snapshots()) {
+      for (var message in next_snapshot.docs) {
         print(
           message.data(),
         );
@@ -77,6 +78,29 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
+                  StreamBuilder<QuerySnapshot>(
+                    stream: _fireStore.collection('messages').snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        final messages = snapshot.data.docs;
+                        List<Text> messageWidgets = [];
+                        for (var message in messages) {
+                          final messageText = message.data['text'];
+                          final messageSender = message.data['sender'];
+                          final messageWidget =
+                              Text('$messageText from $messageSender');
+                          messageWidgets.add(messageWidget);
+                        }
+                        return Column(
+                          children: messageWidgets,
+                        );
+                      } else {
+                        return Column(
+                          children: [],
+                        );
+                      }
+                    },
+                  ),
                   Expanded(
                     child: TextField(
                       onChanged: (value) {
